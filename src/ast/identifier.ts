@@ -1,13 +1,13 @@
+import { Token } from "https://deno.land/x/pbkit@v0.0.46/core/parser/recursive-descent-parser.ts";
 import * as ast from "./index.ts";
 
-export type Identifierorkeyword =
+export type Identifier =
   | NcnameIdentifier
   | QuotedIdentifierIdentifier;
-export default Identifierorkeyword;
+export default Identifier;
 
-export interface NcnameIdentifier extends ast.NodeBase<"identifier"> {
+export interface NcnameIdentifier extends ast.NodeBase<"identifier">, Token {
   kind: "ncname";
-  identifier: ast.Identifier;
 }
 
 export interface QuotedIdentifierIdentifier extends ast.NodeBase<"identifier"> {
