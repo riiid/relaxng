@@ -20,6 +20,7 @@ export type {
   Identifier,
   Identifierorkeyword,
   Includecontent,
+  Literalsegment,
   Name,
   Nameclass,
   Namespaceuriliteral,
