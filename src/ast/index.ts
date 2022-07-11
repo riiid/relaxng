@@ -12,6 +12,7 @@ import Datatypename from "./datatype-name.ts";
 import Namespaceuriliteral from "./namespace-uri-literal.ts";
 import Identifierorkeyword from "./identifier-or-keyword.ts";
 import Identifier from "./identifier.ts";
+import Literalsegment from "./literal-segment.ts";
 export type {
   Datatypename,
   Decl,
@@ -112,5 +113,4 @@ export interface Anyname extends NodeBase<"anyName">, Token {}
 export interface Literal extends NodeBase<"literal"> {
   literalSegmentOrTildes: (Literalsegment | Token)[];
 }
-export interface Literalsegment extends NodeBase<"literalSegment"> {} // TODO
 export interface Keyword extends NodeBase<"keyword">, Token {}
