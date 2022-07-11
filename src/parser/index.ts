@@ -7,6 +7,10 @@ import {
   Token,
 } from "https://deno.land/x/pbkit@v0.0.46/core/parser/recursive-descent-parser.ts";
 import * as ast from "../ast/index.ts";
+import {
+  acceptLiteralsegment,
+  expectLiteralSegment,
+} from "./literal-segment.ts";
 import { mergeSpans, skipWsAndComments } from "./misc.ts";
 
 export type Parser = RecursiveDescentParser;
@@ -44,6 +48,25 @@ export const acceptQuotedidentifier: AcceptFn<ast.Quotedidentifier> = (
     type: "quotedIdentifier",
     backslash,
     ncname,
+  };
+};
+
+export const acceptLiteral: AcceptFn<ast.Literal> = (parser) => {
+  const literalSegment = acceptLiteralsegment(parser);
+  if (!literalSegment) return;
+  const literalSegmentOrTildes: ast.Literal["literalSegmentOrTildes"] = [
+    literalSegment,
+  ];
+  while (true) {
+    const tilde = parser.accept("~");
+    if (!tilde) break;
+    const literalSegment = expectLiteralSegment(parser);
+    literalSegmentOrTildes.push(tilde, literalSegment);
+  }
+  return {
+    ...mergeSpans(literalSegmentOrTildes),
+    type: "literal",
+    literalSegmentOrTildes,
   };
 };
 
