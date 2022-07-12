@@ -68,7 +68,7 @@ export const acceptParenthesisNameclass: AcceptFn<
   };
 };
 
-export const acceptNameclassWithoutOr = choice<
+const acceptNameclassWithoutOr = choice<
   Exclude<ast.Nameclass, nameClass.OrNameclass>
 >([
   acceptAnynameNameclass,
@@ -77,7 +77,7 @@ export const acceptNameclassWithoutOr = choice<
   acceptParenthesisNameclass,
 ]);
 
-export const expectNameclassWithoutOr: ExpectFn<
+const expectNameclassWithoutOr: ExpectFn<
   Exclude<ast.Nameclass, nameClass.OrNameclass>
 > = (parser) => {
   const nameClass = acceptNameclassWithoutOr(parser);
