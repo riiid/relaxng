@@ -19,7 +19,7 @@ export const acceptNameNameclass: AcceptFn<nameClass.NameNameclass> = (
   };
 };
 
-export const acceptNsnameNameClass: AcceptFn<nameClass.NsnameNameclass> = (
+export const acceptNsnameNameclass: AcceptFn<nameClass.NsnameNameclass> = (
   parser,
 ) => {
   const nsname = parser.accept("TODO");
@@ -34,7 +34,7 @@ export const acceptNsnameNameClass: AcceptFn<nameClass.NsnameNameclass> = (
   };
 };
 
-export const acceptAnynameNameClass: AcceptFn<nameClass.AnynameNameclass> = (
+export const acceptAnynameNameclass: AcceptFn<nameClass.AnynameNameclass> = (
   parser,
 ) => {
   const anyname = parser.accept("TODO");
@@ -49,12 +49,12 @@ export const acceptAnynameNameClass: AcceptFn<nameClass.AnynameNameclass> = (
   };
 };
 
-export const acceptParenthesisNameClass: AcceptFn<
+export const acceptParenthesisNameclass: AcceptFn<
   nameClass.ParenthesisNameclass
 > = (parser) => {
   const bracketOpen = parser.expect("(");
   if (!bracketOpen) return;
-  const nameClass = acceptNameClass(parser);
+  const nameClass = acceptNameclass(parser);
   if (!nameClass) return;
   const bracketClose = parser.expect(")");
   if (!bracketClose) return;
@@ -68,34 +68,34 @@ export const acceptParenthesisNameClass: AcceptFn<
   };
 };
 
-export const acceptNameClassWithoutOr = choice<
+export const acceptNameclassWithoutOr = choice<
   Exclude<ast.Nameclass, nameClass.OrNameclass>
 >([
-  acceptAnynameNameClass,
-  acceptNsnameNameClass,
+  acceptAnynameNameclass,
+  acceptNsnameNameclass,
   acceptNameNameclass,
-  acceptParenthesisNameClass,
+  acceptParenthesisNameclass,
 ]);
 
-export const expectNameClassWithoutOr: ExpectFn<
+export const expectNameclassWithoutOr: ExpectFn<
   Exclude<ast.Nameclass, nameClass.OrNameclass>
 > = (parser) => {
-  const nameClass = acceptNameClassWithoutOr(parser);
+  const nameClass = acceptNameclassWithoutOr(parser);
   if (nameClass) return nameClass;
   throw new SyntaxError(parser, ["TODO"]);
 };
 
-export const acceptNameClass: AcceptFn<ast.Nameclass> = (parser) => {
-  const nameClass = acceptNameClassWithoutOr(parser);
-  if (!nameClass) return;
-  const nameClassorOrs: nameClass.OrNameclass["nameClassOrOrs"] = [nameClass];
+export const acceptNameclass: AcceptFn<ast.Nameclass> = (parser) => {
+  const nameclass = acceptNameclassWithoutOr(parser);
+  if (!nameclass) return;
+  const nameClassorOrs: nameClass.OrNameclass["nameClassOrOrs"] = [nameclass];
   while (true) {
     const or = parser.accept("|");
     if (!or) break;
-    const nameClass = expectNameClassWithoutOr(parser);
+    const nameClass = expectNameclassWithoutOr(parser);
     nameClassorOrs.push(or, nameClass);
   }
-  if (nameClassorOrs.length === 1) return nameClass;
+  if (nameClassorOrs.length === 1) return nameclass;
   return {
     type: "nameClass",
     kind: "or",
