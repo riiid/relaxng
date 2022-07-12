@@ -7,11 +7,12 @@ import {
   Token,
 } from "https://deno.land/x/pbkit@v0.0.46/core/parser/recursive-descent-parser.ts";
 import * as ast from "../ast/index.ts";
+import { acceptIdentifierorkeyword } from "./identifier-or-keyword.ts";
 import {
   acceptLiteralsegment,
   expectLiteralSegment,
 } from "./literal-segment.ts";
-import { mergeSpans, skipWsAndComments } from "./misc.ts";
+import { choice, mergeSpans, skipWsAndComments } from "./misc.ts";
 
 export type Parser = RecursiveDescentParser;
 
@@ -67,6 +68,31 @@ export const ncnamePattern = new RegExp(
     getRange(combiningChar)
   }${getRange(extender)}]*`,
 );
+export const acceptCname: AcceptFn<ast.Cname> = (parser) => {
+  const ncname = parser.accept(ncnamePattern);
+  if (!ncname) return;
+  const colon = parser.expect(":");
+  const ncname2 = parser.expect(ncnamePattern);
+  return {
+    type: "CName",
+    ncname,
+    colon,
+    ncname2,
+    ...mergeSpans([ncname, colon, ncname2]),
+  };
+};
+export const acceptNsname: AcceptFn<ast.Nsname> = (parser) => {
+  const ncname = parser.accept(ncnamePattern);
+  if (!ncname) return;
+  const colonStar = parser.expect(":*");
+  return {
+    type: "nsName",
+    ncname,
+    colonStar,
+    ...mergeSpans([ncname, colonStar]),
+  };
+};
+
 export const acceptLiteral: AcceptFn<ast.Literal> = (parser) => {
   const literalSegment = acceptLiteralsegment(parser);
   if (!literalSegment) return;

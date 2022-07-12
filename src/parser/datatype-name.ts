@@ -1,11 +1,11 @@
 import * as ast from "../ast/index.ts";
 import * as datatypeName from "../ast/datatype-name.ts";
-import { AcceptFn } from "./index.ts";
+import { AcceptFn, cnamePattern } from "./index.ts";
 import { choice } from "./misc.ts";
 
 export const acceptCnameDatatypename: AcceptFn<datatypeName.CnameDatatypename> =
   (parser) => {
-    const cname = parser.accept("TODO");
+    const cname = parser.accept(cnamePattern);
     if (!cname) return;
     return {
       type: "datatypeName",
