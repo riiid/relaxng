@@ -1,17 +1,17 @@
 import * as identifier from "../ast/identifier.ts";
 import * as ast from "../ast/index.ts";
-import { AcceptFn, acceptQuotedidentifier } from "./index.ts";
+import { AcceptFn, acceptQuotedidentifier, ncnamePattern } from "./index.ts";
 import { choice } from "./misc.ts";
 
 export const acceptNcnameIdentifier: AcceptFn<
   identifier.NcnameIdentifier
 > = (parser) => {
-  const todo = parser.accept(/^TODO\b/);
-  if (!todo) return;
+  const ncname = parser.accept(ncnamePattern);
+  if (!ncname) return;
   return {
     type: "identifier",
     kind: "ncname",
-    ...todo,
+    ...ncname,
   };
 };
 
