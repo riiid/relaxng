@@ -1,7 +1,10 @@
 import { Token } from "https://deno.land/x/pbkit@v0.0.46/core/parser/recursive-descent-parser.ts";
 import * as ast from "./index.ts";
 
-export type Datatypename = CnameDatatypename;
+export type Datatypename =
+  | CnameDatatypename
+  | StringDatatypename
+  | TokenDatatypename;
 export default Datatypename;
 
 export interface CnameDatatypename extends ast.NodeBase<"datatypeName"> {
