@@ -1,31 +1,42 @@
 import * as ast from "../ast/index.ts";
 import * as grammarContent from "../ast/grammar-content.ts";
-import { AcceptFn } from "./index.ts";
+import {
+  acceptDefine,
+  AcceptFn,
+  acceptStart,
+  expectAnyuriliteral,
+  expectInherit,
+} from "./index.ts";
+import { acceptIncludecontent } from "./include-content.ts";
 import { choice, mergeSpans, skipWsAndComments } from "./misc.ts";
 
 export const acceptStartGrammarcontent: AcceptFn<
   grammarContent.StartGrammarcontent
 > = (parser) => {
-  const startNode = parser.accept("TODO");
+  const startNode = acceptStart(parser);
   if (!startNode) return;
+  const { start, end } = startNode;
   return {
     type: "grammarContent",
     kind: "start",
-    startNode: startNode as unknown as ast.Start,
-    ...startNode,
+    startNode,
+    start,
+    end,
   };
 };
 
 export const acceptDefineGrammarcontent: AcceptFn<
   grammarContent.DefineGrammarcontent
 > = (parser) => {
-  const define = parser.accept("TODO");
+  const define = acceptDefine(parser);
   if (!define) return;
+  const { start, end } = define;
   return {
     type: "grammarContent",
     kind: "define",
-    define: define as unknown as ast.Define,
-    ...define,
+    define,
+    start,
+    end,
   };
 };
 
@@ -37,8 +48,13 @@ export const acceptDivGrammarcontent: AcceptFn<
   skipWsAndComments(parser);
   const bracketOpen = parser.expect("{");
   skipWsAndComments(parser);
-  const grammarContents = parser.expect("TODO");
-  skipWsAndComments(parser);
+  const grammarContents: ast.Grammarcontent[] = [];
+  while (true) {
+    const grammarContent = acceptGrammarcontent(parser);
+    if (!grammarContent) break;
+    grammarContents.push(grammarContent);
+    skipWsAndComments(parser);
+  }
   const bracketClose = parser.expect("}");
   skipWsAndComments(parser);
   return {
@@ -47,7 +63,7 @@ export const acceptDivGrammarcontent: AcceptFn<
     kind: "div",
     div,
     bracketOpen,
-    grammarContents: grammarContents as unknown as ast.Grammarcontent[],
+    grammarContents,
     bracketClose,
   };
 };
@@ -58,9 +74,9 @@ export const acceptIncludeGrammarcontent: AcceptFn<
   const include = parser.accept(/^accept/);
   if (!include) return;
   skipWsAndComments(parser);
-  const anyUriLiteral = parser.expect("TODO");
+  const anyUriLiteral = expectAnyuriliteral(parser);
   skipWsAndComments(parser);
-  const inherit = parser.accept("TODO");
+  const inherit = expectInherit(parser);
   skipWsAndComments(parser);
   const bracketOpen = parser.accept("{");
   if (!bracketOpen) {
@@ -68,14 +84,19 @@ export const acceptIncludeGrammarcontent: AcceptFn<
       type: "grammarContent",
       kind: "include",
       include,
-      anyUriLiteral: anyUriLiteral as unknown as ast.Anyuriliteral,
-      inherit: inherit as unknown as ast.Inherit,
+      anyUriLiteral,
+      inherit,
       ...mergeSpans([include, anyUriLiteral, inherit]),
     };
   }
   skipWsAndComments(parser);
-  const includeContents = parser.expect("TODO");
-  skipWsAndComments(parser);
+  const includeContents: ast.Includecontent[] = [];
+  while (true) {
+    const includeContent = acceptIncludecontent(parser);
+    if (!includeContent) break;
+    includeContents.push(includeContent);
+    skipWsAndComments(parser);
+  }
   const bracketClose = parser.expect("}");
   skipWsAndComments(parser);
   return {
@@ -89,11 +110,11 @@ export const acceptIncludeGrammarcontent: AcceptFn<
     type: "grammarContent",
     kind: "include",
     include,
-    anyUriLiteral: anyUriLiteral as unknown as ast.Anyuriliteral,
-    inherit: inherit as unknown as ast.Inherit,
+    anyUriLiteral,
+    inherit,
     body: {
       bracketOpen,
-      includeContents: includeContents as unknown as ast.Includecontent[],
+      includeContents,
       bracketClose,
     },
   };

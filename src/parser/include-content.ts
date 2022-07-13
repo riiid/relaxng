@@ -1,31 +1,35 @@
 import * as ast from "../ast/index.ts";
 import * as includeContent from "../ast/include-content.ts";
-import { AcceptFn } from "./index.ts";
+import { acceptDefine, AcceptFn, acceptStart } from "./index.ts";
 import { choice, mergeSpans, skipWsAndComments } from "./misc.ts";
 
 export const acceptDefineIncludecontent: AcceptFn<
   includeContent.DefineIncludecontent
 > = (parser) => {
-  const define = parser.accept("TODO");
+  const define = acceptDefine(parser);
   if (!define) return;
+  const { start, end } = define;
   return {
     type: "includeContent",
     kind: "define",
-    define: define as unknown as ast.Define,
-    ...define,
+    define,
+    start,
+    end,
   };
 };
 
 export const acceptStartIncludecontent: AcceptFn<
   includeContent.StartIncludecontent
 > = (parser) => {
-  const startNode = parser.accept("TODO");
+  const startNode = acceptStart(parser);
   if (!startNode) return;
+  const { start, end } = startNode;
   return {
     type: "includeContent",
     kind: "start",
     startNode: startNode as unknown as ast.Start,
-    ...startNode,
+    start,
+    end,
   };
 };
 
@@ -37,10 +41,14 @@ export const acceptDivIncludecontent: AcceptFn<
   skipWsAndComments(parser);
   const bracketOpen = parser.expect("{");
   skipWsAndComments(parser);
-  const includeContents = parser.expect("TODO");
-  skipWsAndComments(parser);
+  const includeContents: ast.Includecontent[] = [];
+  while (true) {
+    const includeContent = acceptIncludecontent(parser);
+    if (!includeContent) break;
+    includeContents.push(includeContent);
+    skipWsAndComments(parser);
+  }
   const bracketClose = parser.expect("}");
-  skipWsAndComments(parser);
   return {
     ...mergeSpans([div, bracketOpen, bracketClose]),
     type: "includeContent",

@@ -7,6 +7,7 @@ import {
   Token,
 } from "https://deno.land/x/pbkit@v0.0.46/core/parser/recursive-descent-parser.ts";
 import * as ast from "../ast/index.ts";
+import { acceptIdentifier } from "./identifier.ts";
 import {
   acceptIdentifierorkeyword,
   expectIdentifierorkeyword,
@@ -16,6 +17,9 @@ import {
   expectLiteralSegment,
 } from "./literal-segment.ts";
 import { choice, mergeSpans, skipWsAndComments } from "./misc.ts";
+import { expectPattern } from "./pattern.ts";
+import { acceptDecl } from "./decl.ts";
+import { acceptGrammarcontent } from "./grammar-content.ts";
 
 export type Parser = RecursiveDescentParser;
 
@@ -37,7 +41,25 @@ export function parse(text: string): ParseResult {
 export const expectToplevel: ExpectFn<ast.Toplevel> = (parser) => {
   const stmts: ast.Toplevel["stmts"] = [];
   skipWsAndComments(parser);
-  // TODO
+  while (true) {
+    const decl = acceptDecl(parser);
+    if (!decl) break;
+    stmts.push(decl);
+    skipWsAndComments(parser);
+  }
+  const grammarcontent = acceptGrammarcontent(parser);
+  if (grammarcontent) {
+    stmts.push(grammarcontent);
+    while (true) {
+      skipWsAndComments(parser);
+      const trailingGrammarcontent = acceptGrammarcontent(parser);
+      if (!trailingGrammarcontent) break;
+      stmts.push(trailingGrammarcontent);
+    }
+  } else {
+    const pattern = expectPattern(parser);
+    stmts.push(pattern);
+  }
   return { ...mergeSpans(stmts), type: "topLevel", stmts };
 };
 
@@ -119,6 +141,16 @@ export const expectLiteral: ExpectFn<ast.Literal> = (parser) => {
   if (literal) return literal;
   throw new SyntaxError(parser, ["<TODO: Literal>"]);
 };
+export const expectAnyuriliteral: ExpectFn<ast.Anyuriliteral> = (parser) => {
+  const literal = expectLiteral(parser);
+  const { start, end } = literal;
+  return {
+    type: "anyURILiteral",
+    literal,
+    start,
+    end,
+  };
+};
 
 export const keywordPattern =
   /^(attribute|default|datatypes|div|element|empty|external|grammar|include|inherit|list|mixed|namespace|notAllowed|parent|start|string|text|token)\b/;
@@ -153,5 +185,57 @@ export const acceptInherit: AcceptFn<ast.Inherit> = (parser) => {
     eq,
     identifierOrKeyword,
     ...mergeSpans([inherit, eq, identifierOrKeyword]),
+  };
+};
+export const expectInherit: ExpectFn<ast.Inherit> = (parser) => {
+  const inherit = acceptInherit(parser);
+  if (inherit) return inherit;
+  throw new SyntaxError(parser, ["<TODO: Inherit>"]);
+};
+
+export const acceptAssignmethod: AcceptFn<ast.Assignmethod> = (parser) => {
+  const assignmethod = parser.accept(/^(=|\|=|&=)/);
+  if (!assignmethod) return;
+  return {
+    type: "assignMethod",
+    ...assignmethod,
+  };
+};
+
+export const expectAssignmethod: ExpectFn<ast.Assignmethod> = (parser) => {
+  const assignmethod = acceptAssignmethod(parser);
+  if (assignmethod) return assignmethod;
+  throw new SyntaxError(parser, ["<TODO: Assignmethod>"]);
+};
+
+export const acceptStart: AcceptFn<ast.Start> = (parser) => {
+  const startToken = parser.accept("start");
+  if (!startToken) return;
+  skipWsAndComments(parser);
+  const assignMethod = expectAssignmethod(parser);
+  skipWsAndComments(parser);
+  const pattern = expectPattern(parser);
+  return {
+    ...mergeSpans([startToken, assignMethod, pattern]),
+    type: "start",
+    startToken,
+    assignMethod,
+    pattern,
+  };
+};
+
+export const acceptDefine: AcceptFn<ast.Define> = (parser) => {
+  const identifier = acceptIdentifier(parser);
+  if (!identifier) return;
+  skipWsAndComments(parser);
+  const assignMethod = expectAssignmethod(parser);
+  skipWsAndComments(parser);
+  const pattern = expectPattern(parser);
+  return {
+    ...mergeSpans([identifier, assignMethod, pattern]),
+    type: "define",
+    identifier,
+    assignMethod,
+    pattern,
   };
 };

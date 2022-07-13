@@ -6,6 +6,7 @@ import {
   acceptInherit,
   acceptLiteral,
   acceptParam,
+  expectAnyuriliteral,
   ExpectFn,
   expectLiteral,
 } from "./index.ts";
@@ -263,20 +264,14 @@ export const acceptExternalPattern: AcceptFn<pattern.ExternalPattern> = (
   const external = parser.accept("external");
   if (!external) return;
   skipWsAndComments(parser);
-  const anyUriLiteral = expectLiteral(parser);
-  const { start, end } = anyUriLiteral;
+  const anyUriLiteral = expectAnyuriliteral(parser);
   const inherit = acceptInherit(parser);
   return {
     ...mergeSpans([external, anyUriLiteral, inherit]),
     type: "pattern",
     kind: "external",
     external,
-    anyUriLiteral: {
-      type: "anyURILiteral",
-      literal: anyUriLiteral,
-      start,
-      end,
-    },
+    anyUriLiteral,
     inherit,
   };
 };
