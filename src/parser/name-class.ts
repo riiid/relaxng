@@ -27,11 +27,11 @@ export const acceptNsnameNameclass: AcceptFn<nameClass.NsnameNameclass> = (
   if (!nsName) return;
   const exceptNameClass = acceptExceptnameclass(parser);
   return {
+    ...mergeSpans([nsName, exceptNameClass]),
     type: "nameClass",
     kind: "nsname",
     nsName,
     exceptNameClass,
-    ...mergeSpans([nsName, exceptNameClass]),
   };
 };
 
@@ -63,12 +63,12 @@ export const acceptParenthesisNameclass: AcceptFn<
   const bracketClose = parser.expect(")");
   if (!bracketClose) return;
   return {
+    ...mergeSpans([bracketOpen, nameClass, bracketClose]),
     type: "nameClass",
     kind: "parenthesis",
     bracketOpen,
     nameClass,
     bracketClose,
-    ...mergeSpans([bracketOpen, nameClass, bracketClose]),
   };
 };
 
@@ -121,9 +121,9 @@ export const acceptExceptnameclass: AcceptFn<ast.Exceptnameclass> = (
   if (!minus) return;
   const nameClass = expectNameclass(parser);
   return {
+    ...mergeSpans([minus, nameClass]),
     type: "exceptNameClass",
     minus,
     nameClass,
-    ...mergeSpans([minus, nameClass]),
   };
 };

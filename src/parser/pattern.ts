@@ -30,6 +30,7 @@ export const acceptElementPattern: AcceptFn<pattern.ElementPattern> = (
   const bracketClose = parser.expect("}");
   skipWsAndComments(parser);
   return {
+    ...mergeSpans([element, nameClass, bracketOpen, pattern, bracketClose]),
     type: "pattern",
     kind: "element",
     element: {
@@ -40,7 +41,6 @@ export const acceptElementPattern: AcceptFn<pattern.ElementPattern> = (
     bracketOpen: bracketOpen,
     pattern: pattern,
     bracketClose: bracketClose,
-    ...mergeSpans([element, nameClass, bracketOpen, pattern, bracketClose]),
   };
 };
 
@@ -84,6 +84,7 @@ export const acceptListPattern: AcceptFn<pattern.ListPattern> = (parser) => {
   const bracketClose = parser.expect("}");
   skipWsAndComments(parser);
   return {
+    ...mergeSpans([list, bracketOpen, pattern, bracketClose]),
     type: "pattern",
     kind: "list",
     list: {
@@ -93,7 +94,6 @@ export const acceptListPattern: AcceptFn<pattern.ListPattern> = (parser) => {
     bracketOpen: bracketOpen,
     pattern: pattern,
     bracketClose: bracketClose,
-    ...mergeSpans([list, bracketOpen, pattern, bracketClose]),
   };
 };
 
@@ -144,6 +144,7 @@ export const acceptParentPattern: AcceptFn<pattern.ParentPattern> = (
   skipWsAndComments(parser);
   const identifier = expectIdentifier(parser);
   return {
+    ...mergeSpans([parent, identifier]),
     type: "pattern",
     kind: "parent",
     parent: {
@@ -151,7 +152,6 @@ export const acceptParentPattern: AcceptFn<pattern.ParentPattern> = (
       ...parent,
     },
     identifier,
-    ...mergeSpans([parent, identifier]),
   };
 };
 
@@ -214,6 +214,13 @@ export const acceptDatatypeNamePattern: AcceptFn<pattern.DatatypeNamePattern> =
       const bracketClose = parser.expect("}");
       const exceptPattern = acceptExceptpattern(parser);
       return {
+        ...mergeSpans([
+          datatypeName,
+          bracketOpen,
+          params,
+          bracketClose,
+          exceptPattern,
+        ]),
         type: "pattern",
         kind: "datatype-name",
         datatypeName,
@@ -223,25 +230,18 @@ export const acceptDatatypeNamePattern: AcceptFn<pattern.DatatypeNamePattern> =
           bracketClose,
         },
         exceptPattern,
-        ...mergeSpans([
-          datatypeName,
-          bracketOpen,
-          params,
-          bracketClose,
-          exceptPattern,
-        ]),
       };
     }
     const exceptPattern = acceptExceptpattern(parser);
     return {
-      type: "pattern",
-      kind: "datatype-name",
-      datatypeName,
-      exceptPattern,
       ...mergeSpans([
         datatypeName,
         exceptPattern,
       ]),
+      type: "pattern",
+      kind: "datatype-name",
+      datatypeName,
+      exceptPattern,
     };
   };
 
@@ -267,6 +267,7 @@ export const acceptExternalPattern: AcceptFn<pattern.ExternalPattern> = (
   const { start, end } = anyUriLiteral;
   const inherit = acceptInherit(parser);
   return {
+    ...mergeSpans([external, anyUriLiteral, inherit]),
     type: "pattern",
     kind: "external",
     external,
@@ -277,7 +278,6 @@ export const acceptExternalPattern: AcceptFn<pattern.ExternalPattern> = (
       end,
     },
     inherit,
-    ...mergeSpans([external, anyUriLiteral, inherit]),
   };
 };
 
@@ -298,13 +298,13 @@ export const acceptGrammarPattern: AcceptFn<pattern.GrammarPattern> = (
   }
   const bracketClose = parser.expect("}");
   return {
+    ...mergeSpans([grammar, bracketOpen, grammarContents, bracketClose]),
     type: "pattern",
     kind: "grammar",
     grammar,
     bracketOpen,
     grammarContents,
     bracketClose,
-    ...mergeSpans([grammar, bracketOpen, grammarContents, bracketClose]),
   };
 };
 
@@ -373,15 +373,17 @@ export const acceptPattern: AcceptFn<ast.Pattern> = (parser) => {
     patternOrOperators.push(op, trailingPattern);
   }
   return {
+    ...mergeSpans(patternOrOperators),
     type: "pattern",
     kind: "operator",
     patternOrOperators,
-    ...mergeSpans(patternOrOperators),
   };
 };
 
 export const expectPattern: ExpectFn<ast.Pattern> = (parser) => {
-  throw new Error("TODO");
+  const pattern = acceptPattern(parser);
+  if (pattern) return pattern;
+  throw new SyntaxError(parser, ["<TODO: Pattern>"]);
 };
 
 // @TODO: move to parser/index.ts?
@@ -391,9 +393,9 @@ export const acceptExceptpattern: AcceptFn<ast.Exceptpattern> = (parser) => {
   skipWsAndComments(parser);
   const pattern = expectPattern(parser);
   return {
+    ...mergeSpans([minus, pattern]),
     type: "exceptPattern",
     minus,
     pattern,
-    ...mergeSpans([minus, pattern]),
   };
 };

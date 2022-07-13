@@ -42,13 +42,13 @@ export const acceptDivGrammarcontent: AcceptFn<
   const bracketClose = parser.expect("}");
   skipWsAndComments(parser);
   return {
+    ...mergeSpans([div, bracketOpen, bracketClose]),
     type: "grammarContent",
     kind: "div",
     div,
     bracketOpen,
     grammarContents: grammarContents as unknown as ast.Grammarcontent[],
     bracketClose,
-    ...mergeSpans([div, bracketOpen, bracketClose]),
   };
 };
 
@@ -79,6 +79,13 @@ export const acceptIncludeGrammarcontent: AcceptFn<
   const bracketClose = parser.expect("}");
   skipWsAndComments(parser);
   return {
+    ...mergeSpans([
+      include,
+      anyUriLiteral,
+      inherit,
+      bracketOpen,
+      bracketClose,
+    ]),
     type: "grammarContent",
     kind: "include",
     include,
@@ -89,13 +96,6 @@ export const acceptIncludeGrammarcontent: AcceptFn<
       includeContents: includeContents as unknown as ast.Includecontent[],
       bracketClose,
     },
-    ...mergeSpans([
-      include,
-      anyUriLiteral,
-      inherit,
-      bracketOpen,
-      bracketClose,
-    ]),
   };
 };
 

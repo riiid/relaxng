@@ -42,13 +42,13 @@ export const acceptDivIncludecontent: AcceptFn<
   const bracketClose = parser.expect("}");
   skipWsAndComments(parser);
   return {
+    ...mergeSpans([div, bracketOpen, bracketClose]),
     type: "includeContent",
     kind: "div",
     div,
     bracketOpen,
     includeContents: includeContents as unknown as ast.Includecontent[],
     bracketClose,
-    ...mergeSpans([div, bracketOpen, bracketClose]),
   };
 };
 

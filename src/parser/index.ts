@@ -134,11 +134,11 @@ export const acceptParam: AcceptFn<ast.Param> = (parser) => {
   const eq = parser.expect("=");
   const literal = expectLiteral(parser);
   return {
+    ...mergeSpans([identifierOrKeyword, eq, literal]),
     type: "param",
     identifierOrKeyword,
     eq,
     literal,
-    ...mergeSpans([identifierOrKeyword, eq, literal]),
   };
 };
 
