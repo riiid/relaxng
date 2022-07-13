@@ -1,19 +1,20 @@
 import { SyntaxError } from "https://deno.land/x/pbkit@v0.0.46/core/parser/recursive-descent-parser.ts";
 import * as ast from "../ast/index.ts";
 import * as nameClass from "../ast/name-class.ts";
-import { AcceptFn, ExpectFn } from "./index.ts";
+import { AcceptFn, acceptNsname, ExpectFn } from "./index.ts";
 import { choice, mergeSpans } from "./misc.ts";
+import { acceptName } from "./name.ts";
 
 export const acceptNameNameclass: AcceptFn<nameClass.NameNameclass> = (
   parser,
 ) => {
-  const name = parser.accept("TODO");
+  const name = acceptName(parser);
   if (!name) return;
   const { start, end } = name;
   return {
     type: "nameClass",
     kind: "name",
-    name: name as unknown as ast.Name,
+    name,
     start,
     end,
   };
@@ -22,29 +23,32 @@ export const acceptNameNameclass: AcceptFn<nameClass.NameNameclass> = (
 export const acceptNsnameNameclass: AcceptFn<nameClass.NsnameNameclass> = (
   parser,
 ) => {
-  const nsname = parser.accept("TODO");
-  if (!nsname) return;
-  const exceptNameClass = parser.accept("TODO");
+  const nsName = acceptNsname(parser);
+  if (!nsName) return;
+  const exceptNameClass = acceptExceptnameclass(parser);
   return {
+    ...mergeSpans([nsName, exceptNameClass]),
     type: "nameClass",
     kind: "nsname",
-    nsName: nsname as unknown as ast.Nsname,
-    exceptNameClass: exceptNameClass as unknown as ast.Exceptnameclass,
-    ...mergeSpans([nsname, exceptNameClass]),
+    nsName,
+    exceptNameClass,
   };
 };
 
 export const acceptAnynameNameclass: AcceptFn<nameClass.AnynameNameclass> = (
   parser,
 ) => {
-  const anyname = parser.accept("TODO");
+  const anyname = parser.accept("*");
   if (!anyname) return;
-  const exceptNameClass = parser.accept("TODO");
+  const exceptNameClass = acceptExceptnameclass(parser);
   return {
     type: "nameClass",
     kind: "anyname",
-    anyname: anyname as unknown as ast.Anyname,
-    exceptNameClass: exceptNameClass as unknown as ast.Exceptnameclass,
+    anyname: {
+      type: "anyName",
+      ...anyname,
+    },
+    exceptNameClass,
     ...mergeSpans([anyname, exceptNameClass]),
   };
 };
@@ -59,12 +63,12 @@ export const acceptParenthesisNameclass: AcceptFn<
   const bracketClose = parser.expect(")");
   if (!bracketClose) return;
   return {
+    ...mergeSpans([bracketOpen, nameClass, bracketClose]),
     type: "nameClass",
     kind: "parenthesis",
     bracketOpen,
     nameClass,
     bracketClose,
-    ...mergeSpans([bracketOpen, nameClass, bracketClose]),
   };
 };
 
@@ -88,18 +92,38 @@ const expectNameclassWithoutOr: ExpectFn<
 export const acceptNameclass: AcceptFn<ast.Nameclass> = (parser) => {
   const nameclass = acceptNameclassWithoutOr(parser);
   if (!nameclass) return;
-  const nameClassorOrs: nameClass.OrNameclass["nameClassOrOrs"] = [nameclass];
+  const nameClassOrOrs: nameClass.OrNameclass["nameClassOrOrs"] = [nameclass];
   while (true) {
     const or = parser.accept("|");
     if (!or) break;
     const nameClass = expectNameclassWithoutOr(parser);
-    nameClassorOrs.push(or, nameClass);
+    nameClassOrOrs.push(or, nameClass);
   }
-  if (nameClassorOrs.length === 1) return nameclass;
+  if (nameClassOrOrs.length === 1) return nameclass;
   return {
     type: "nameClass",
     kind: "or",
-    nameClassOrOrs: nameClassorOrs,
-    ...mergeSpans(nameClassorOrs),
+    nameClassOrOrs,
+    ...mergeSpans(nameClassOrOrs),
+  };
+};
+
+export const expectNameclass: ExpectFn<ast.Nameclass> = (parser) => {
+  const nameclass = acceptNameclass(parser);
+  if (nameclass) return nameclass;
+  throw new SyntaxError(parser, ["<TODO: nameclass>"]);
+};
+
+export const acceptExceptnameclass: AcceptFn<ast.Exceptnameclass> = (
+  parser,
+) => {
+  const minus = parser.accept("-");
+  if (!minus) return;
+  const nameClass = expectNameclass(parser);
+  return {
+    ...mergeSpans([minus, nameClass]),
+    type: "exceptNameClass",
+    minus,
+    nameClass,
   };
 };

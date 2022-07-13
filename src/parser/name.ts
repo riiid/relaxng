@@ -1,6 +1,6 @@
 import * as ast from "../ast/index.ts";
 import * as name from "../ast/name.ts";
-import { AcceptFn } from "./index.ts";
+import { acceptCname, AcceptFn } from "./index.ts";
 import { acceptIdentifierorkeyword } from "./identifier-or-keyword.ts";
 import { choice } from "./misc.ts";
 
@@ -20,13 +20,13 @@ export const acceptIdentifierOrKeywordName: AcceptFn<
 };
 
 export const acceptCnameName: AcceptFn<name.CnameName> = (parser) => {
-  const cname = parser.expect("TODO");
+  const cname = acceptCname(parser);
   if (!cname) return;
   const { start, end } = cname;
   return {
     type: "name",
     kind: "cname",
-    cname: cname as unknown as ast.Cname,
+    cname,
     start,
     end,
   };

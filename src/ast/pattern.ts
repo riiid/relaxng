@@ -58,8 +58,9 @@ export interface MixedPattern extends ast.NodeBase<"pattern"> {
   bracketClose: Token;
 }
 
-export interface IdentifierPattern extends ast.NodeBase<"pattern">, Token {
+export interface IdentifierPattern extends ast.NodeBase<"pattern"> {
   kind: "identifier";
+  identifier: ast.Identifier;
 }
 
 export interface ParentPattern extends ast.NodeBase<"pattern"> {
