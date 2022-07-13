@@ -7,7 +7,10 @@ import {
   Token,
 } from "https://deno.land/x/pbkit@v0.0.46/core/parser/recursive-descent-parser.ts";
 import * as ast from "../ast/index.ts";
-import { acceptIdentifierorkeyword } from "./identifier-or-keyword.ts";
+import {
+  acceptIdentifierorkeyword,
+  expectIdentifierorkeyword,
+} from "./identifier-or-keyword.ts";
 import {
   acceptLiteralsegment,
   expectLiteralSegment,
@@ -111,6 +114,11 @@ export const acceptLiteral: AcceptFn<ast.Literal> = (parser) => {
     literalSegmentOrTildes,
   };
 };
+export const expectLiteral: ExpectFn<ast.Literal> = (parser) => {
+  const literal = acceptLiteral(parser);
+  if (literal) return literal;
+  throw new SyntaxError(parser, ["<TODO: Literal>"]);
+};
 
 export const keywordPattern =
   /^(attribute|default|datatypes|div|element|empty|external|grammar|include|inherit|list|mixed|namespace|notAllowed|parent|start|string|text|token)\b/;
@@ -118,4 +126,32 @@ export const acceptKeyword: AcceptFn<ast.Keyword> = (parser) => {
   const keyword = parser.accept(keywordPattern);
   if (!keyword) return;
   return { ...keyword, type: "keyword" };
+};
+
+export const acceptParam: AcceptFn<ast.Param> = (parser) => {
+  const identifierOrKeyword = acceptIdentifierorkeyword(parser);
+  if (!identifierOrKeyword) return;
+  const eq = parser.expect("=");
+  const literal = expectLiteral(parser);
+  return {
+    type: "param",
+    identifierOrKeyword,
+    eq,
+    literal,
+    ...mergeSpans([identifierOrKeyword, eq, literal]),
+  };
+};
+
+export const acceptInherit: AcceptFn<ast.Inherit> = (parser) => {
+  const inherit = parser.accept("inherit");
+  if (!inherit) return;
+  const eq = parser.expect("=");
+  const identifierOrKeyword = expectIdentifierorkeyword(parser);
+  return {
+    type: "inherit",
+    inherit,
+    eq,
+    identifierOrKeyword,
+    ...mergeSpans([inherit, eq, identifierOrKeyword]),
+  };
 };
