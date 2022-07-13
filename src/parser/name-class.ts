@@ -14,7 +14,7 @@ export const acceptNameNameclass: AcceptFn<nameClass.NameNameclass> = (
   return {
     type: "nameClass",
     kind: "name",
-    name: name as unknown as ast.Name,
+    name,
     start,
     end,
   };
@@ -23,15 +23,15 @@ export const acceptNameNameclass: AcceptFn<nameClass.NameNameclass> = (
 export const acceptNsnameNameclass: AcceptFn<nameClass.NsnameNameclass> = (
   parser,
 ) => {
-  const nsname = acceptNsname(parser);
-  if (!nsname) return;
+  const nsName = acceptNsname(parser);
+  if (!nsName) return;
   const exceptNameClass = acceptExceptnameclass(parser);
   return {
     type: "nameClass",
     kind: "nsname",
-    nsName: nsname as unknown as ast.Nsname,
-    exceptNameClass: exceptNameClass as unknown as ast.Exceptnameclass,
-    ...mergeSpans([nsname, exceptNameClass]),
+    nsName,
+    exceptNameClass,
+    ...mergeSpans([nsName, exceptNameClass]),
   };
 };
 
@@ -48,7 +48,7 @@ export const acceptAnynameNameclass: AcceptFn<nameClass.AnynameNameclass> = (
       type: "anyName",
       ...anyname,
     },
-    exceptNameClass: exceptNameClass as unknown as ast.Exceptnameclass,
+    exceptNameClass,
     ...mergeSpans([anyname, exceptNameClass]),
   };
 };
@@ -92,19 +92,19 @@ const expectNameclassWithoutOr: ExpectFn<
 export const acceptNameclass: AcceptFn<ast.Nameclass> = (parser) => {
   const nameclass = acceptNameclassWithoutOr(parser);
   if (!nameclass) return;
-  const nameClassorOrs: nameClass.OrNameclass["nameClassOrOrs"] = [nameclass];
+  const nameClassOrOrs: nameClass.OrNameclass["nameClassOrOrs"] = [nameclass];
   while (true) {
     const or = parser.accept("|");
     if (!or) break;
     const nameClass = expectNameclassWithoutOr(parser);
-    nameClassorOrs.push(or, nameClass);
+    nameClassOrOrs.push(or, nameClass);
   }
-  if (nameClassorOrs.length === 1) return nameclass;
+  if (nameClassOrOrs.length === 1) return nameclass;
   return {
     type: "nameClass",
     kind: "or",
-    nameClassOrOrs: nameClassorOrs,
-    ...mergeSpans(nameClassorOrs),
+    nameClassOrOrs,
+    ...mergeSpans(nameClassOrOrs),
   };
 };
 

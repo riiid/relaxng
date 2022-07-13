@@ -74,11 +74,11 @@ export const acceptCname: AcceptFn<ast.Cname> = (parser) => {
   const colon = parser.expect(":");
   const ncname2 = parser.expect(ncnamePattern);
   return {
+    ...mergeSpans([ncname, colon, ncname2]),
     type: "CName",
     ncname,
     colon,
     ncname2,
-    ...mergeSpans([ncname, colon, ncname2]),
   };
 };
 export const acceptNsname: AcceptFn<ast.Nsname> = (parser) => {
@@ -86,10 +86,10 @@ export const acceptNsname: AcceptFn<ast.Nsname> = (parser) => {
   if (!ncname) return;
   const colonStar = parser.expect(":*");
   return {
+    ...mergeSpans([ncname, colonStar]),
     type: "nsName",
     ncname,
     colonStar,
-    ...mergeSpans([ncname, colonStar]),
   };
 };
 
