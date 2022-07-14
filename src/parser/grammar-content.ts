@@ -56,7 +56,6 @@ export const acceptDivGrammarcontent: AcceptFn<
     skipWsAndComments(parser);
   }
   const bracketClose = parser.expect("}");
-  skipWsAndComments(parser);
   return {
     ...mergeSpans([div, bracketOpen, bracketClose]),
     type: "grammarContent",
@@ -98,7 +97,6 @@ export const acceptIncludeGrammarcontent: AcceptFn<
     skipWsAndComments(parser);
   }
   const bracketClose = parser.expect("}");
-  skipWsAndComments(parser);
   return {
     ...mergeSpans([
       include,
