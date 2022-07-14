@@ -322,16 +322,19 @@ export const acceptParenthesisPattern: AcceptFn<pattern.ParenthesisPattern> = (
   };
 };
 
+// datatypeValue(literal), datatypeName(Cname), identifier(NCname)
+// Cname = NCname : NCname
+// datatypeName first
 const acceptPatternWithoutOperator = choice<
   Exclude<ast.Pattern, pattern.OperatorPattern>
 >([
-  acceptDatatypeValuePattern,
-  acceptDatatypeNamePattern,
   acceptElementPattern,
   acceptAttributePattern,
+  acceptDatatypeNamePattern,
+  acceptIdentifierPattern,
+  acceptDatatypeValuePattern,
   acceptListPattern,
   acceptMixedPattern,
-  acceptIdentifierPattern,
   acceptParentPattern,
   acceptEmptyPattern,
   acceptTextPattern,
@@ -364,6 +367,7 @@ export const acceptPattern: AcceptFn<ast.Pattern> = (parser) => {
       case "*":
       case "+":
         patternOrOperators.push(op);
+        skipWsAndComments(parser);
         continue;
     }
     skipWsAndComments(parser);

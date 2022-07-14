@@ -169,7 +169,9 @@ export const acceptKeyword: AcceptFn<ast.Keyword> = (parser) => {
 export const acceptParam: AcceptFn<ast.Param> = (parser) => {
   const identifierOrKeyword = acceptIdentifierorkeyword(parser);
   if (!identifierOrKeyword) return;
+  skipWsAndComments(parser);
   const eq = parser.expect("=");
+  skipWsAndComments(parser);
   const literal = expectLiteral(parser);
   return {
     ...mergeSpans([identifierOrKeyword, eq, literal]),
