@@ -3,6 +3,7 @@ import * as grammarContent from "../ast/grammar-content.ts";
 import {
   acceptDefine,
   AcceptFn,
+  acceptInherit,
   acceptStart,
   expectAnyuriliteral,
   expectInherit,
@@ -43,7 +44,7 @@ export const acceptDefineGrammarcontent: AcceptFn<
 export const acceptDivGrammarcontent: AcceptFn<
   grammarContent.DivGrammarcontent
 > = (parser) => {
-  const div = parser.accept(/^div/);
+  const div = parser.accept(/^div\b/);
   if (!div) return;
   skipWsAndComments(parser);
   const bracketOpen = parser.expect("{");
@@ -70,12 +71,12 @@ export const acceptDivGrammarcontent: AcceptFn<
 export const acceptIncludeGrammarcontent: AcceptFn<
   grammarContent.IncludeGrammarcontent
 > = (parser) => {
-  const include = parser.accept(/^accept/);
+  const include = parser.accept(/^include\b/);
   if (!include) return;
   skipWsAndComments(parser);
   const anyUriLiteral = expectAnyuriliteral(parser);
   skipWsAndComments(parser);
-  const inherit = expectInherit(parser);
+  const inherit = acceptInherit(parser);
   skipWsAndComments(parser);
   const bracketOpen = parser.accept("{");
   if (!bracketOpen) {
@@ -120,7 +121,7 @@ export const acceptIncludeGrammarcontent: AcceptFn<
 
 export const acceptGrammarcontent = choice<ast.Grammarcontent>([
   acceptStartGrammarcontent,
-  acceptDefineGrammarcontent,
   acceptDivGrammarcontent,
   acceptIncludeGrammarcontent,
+  acceptDefineGrammarcontent,
 ]);

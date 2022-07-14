@@ -48,6 +48,8 @@ export function skipWsAndComments(parser: Parser): void {
   while (true) {
     const whitespace = parser.accept(whitespacePattern);
     if (whitespace) continue;
+    const singlelineComment = parser.accept(/^#.*(?:\r?\n|$)/);
+    if (singlelineComment) continue;
     // TODO: comment
     break;
   }
