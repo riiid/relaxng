@@ -1,6 +1,6 @@
 import { parse } from "./index.ts";
 
-Deno.test("test", () => {
+Deno.test("RelaxNG", () => {
   parse(
     `default namespace rng = "http://relaxng.org/ns/structure/1.0"
   namespace local = ""
