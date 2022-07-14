@@ -175,10 +175,11 @@ export const acceptTextPattern: AcceptFn<pattern.TextPattern> = (parser) => {
 export const acceptDatatypeValuePattern: AcceptFn<
   pattern.DatatypeValuePattern
 > = (parser) => {
+  const recovery = parser.loc;
   const datatypeName = acceptDatatypeName(parser);
   skipWsAndComments(parser);
   const datatypeValue = acceptLiteral(parser);
-  if (!datatypeValue) return;
+  if (!datatypeValue) return void (parser.loc = recovery);
   const { start, end } = datatypeValue;
   return {
     type: "pattern",
@@ -324,6 +325,8 @@ export const acceptParenthesisPattern: AcceptFn<pattern.ParenthesisPattern> = (
 const acceptPatternWithoutOperator = choice<
   Exclude<ast.Pattern, pattern.OperatorPattern>
 >([
+  acceptDatatypeValuePattern,
+  acceptDatatypeNamePattern,
   acceptElementPattern,
   acceptAttributePattern,
   acceptListPattern,
@@ -332,7 +335,6 @@ const acceptPatternWithoutOperator = choice<
   acceptParentPattern,
   acceptEmptyPattern,
   acceptTextPattern,
-  acceptDatatypeNamePattern,
   acceptNotAllowedPattern,
   acceptExternalPattern,
   acceptGrammarPattern,
@@ -364,6 +366,7 @@ export const acceptPattern: AcceptFn<ast.Pattern> = (parser) => {
         patternOrOperators.push(op);
         continue;
     }
+    skipWsAndComments(parser);
     const trailingPattern = expectPatternWithoutOperator(parser);
     patternOrOperators.push(op, trailingPattern);
     skipWsAndComments(parser);

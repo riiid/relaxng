@@ -16,7 +16,7 @@ import {
   acceptLiteralsegment,
   expectLiteralSegment,
 } from "./literal-segment.ts";
-import { choice, mergeSpans, skipWsAndComments } from "./misc.ts";
+import { accepts, mergeSpans, skipWsAndComments } from "./misc.ts";
 import { expectPattern } from "./pattern.ts";
 import { acceptDecl } from "./decl.ts";
 import { acceptGrammarcontent } from "./grammar-content.ts";
@@ -94,9 +94,12 @@ export const ncnamePattern = new RegExp(
   }${getRange(extender)}]*`,
 );
 export const acceptCname: AcceptFn<ast.Cname> = (parser) => {
-  const ncname = parser.accept(ncnamePattern);
-  if (!ncname) return;
-  const colon = parser.expect(":");
+  const ncnameAndColon = accepts(parser, [
+    (parser) => parser.accept(ncnamePattern),
+    (parser) => parser.accept(":"),
+  ]);
+  if (!ncnameAndColon) return;
+  const [ncname, colon] = ncnameAndColon;
   const ncname2 = parser.expect(ncnamePattern);
   return {
     ...mergeSpans([ncname, colon, ncname2]),
@@ -107,9 +110,12 @@ export const acceptCname: AcceptFn<ast.Cname> = (parser) => {
   };
 };
 export const acceptNsname: AcceptFn<ast.Nsname> = (parser) => {
-  const ncname = parser.accept(ncnamePattern);
-  if (!ncname) return;
-  const colonStar = parser.expect(":*");
+  const ncnameAndColonStar = accepts(parser, [
+    (parser) => parser.accept(ncnamePattern),
+    (parser) => parser.accept(":*"),
+  ]);
+  if (!ncnameAndColonStar) return;
+  const [ncname, colonStar] = ncnameAndColonStar;
   return {
     ...mergeSpans([ncname, colonStar]),
     type: "nsName",
